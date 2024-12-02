@@ -54,6 +54,22 @@ public static class HistorianHysteria
         
         return distances;
     }
+
+    private static List<int> GetSimilarityScores(LocationIds locationIds)
+    {
+        List<int> similarityScores = [];
+
+        foreach (var leftId in locationIds.LeftIds)
+        {
+            
+            var occurrences = locationIds.RightIds.Count(rightId=> rightId == leftId);
+            var similarityScore = leftId * occurrences;
+            
+            similarityScores.Add(similarityScore);
+        }
+        
+        return similarityScores;
+    }
     
     public static async Task<int> Part1()
     {
@@ -64,4 +80,13 @@ public static class HistorianHysteria
         return distances.Sum();
     }
 
+    public static async Task<int> Part2()
+    {
+        var locationIds = await GetLocationIds();
+
+        var similarityScore = GetSimilarityScores(locationIds);
+        
+        return similarityScore.Sum();
+    }
+    
 }

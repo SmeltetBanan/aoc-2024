@@ -8,12 +8,12 @@ var consoleInput = Console.ReadLine();
 
 if (Enum.TryParse(consoleInput, true,  out AdventChoice choice))
 {
-    var result = string.Empty;
     
     switch (choice)
     {
         case AdventChoice.Day1:
-            result = (await HistorianHysteria.Part1()).ToString();
+            Console.WriteLine("Part 1: " 1+ await HistorianHysteria.Part1());
+            Console.WriteLine("Part 2: " + await HistorianHysteria.Part2());
             break;
         case AdventChoice.Exit:
             
@@ -23,5 +23,4 @@ if (Enum.TryParse(consoleInput, true,  out AdventChoice choice))
             throw new ArgumentOutOfRangeException();
     }
     
-    Console.WriteLine(result);
 }
