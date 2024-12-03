@@ -22,7 +22,7 @@ if (Enum.TryParse(consoleInput, true, out AdventChoice choice))
             break;
         case AdventChoice.Day3:
             Console.WriteLine("Part 1: " + await MullItOver.Part1());
-
+            Console.WriteLine("Part 2: " + await MullItOver.Part2());
             break;
         case AdventChoice.Exit:
 

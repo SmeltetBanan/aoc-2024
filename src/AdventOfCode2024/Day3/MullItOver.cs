@@ -4,15 +4,18 @@ namespace AdventOfCode2024.Day3;
 
 public static partial class MullItOver
 {
-    [GeneratedRegex(@"(mul\(([0-9]{0,3}),([0-9]{0,3})\))", RegexOptions.None)]
-    private static partial Regex MatchIfValidMultiplicationMemory();
+    [GeneratedRegex(
+        @"((?'condition'(don't\(\))|(do\(\)))|((?'operation'mul)\((?'X'[0-9]{1,3}),(?'Y'[0-9]{1,3})\)))",
+        RegexOptions.ExplicitCapture
+    )]
+    private static partial Regex MatchIfValidMultiplicationMemoryWithCondtions();
 
     private enum Operation
     {
         Multiplication,
     }
 
-    private record Instruction(int X, int Y, Operation Operation);
+    private record Instruction(int X, int Y, Operation Operation, bool Ignore);
 
     private static async Task<List<Instruction>> GetCorruptedMemory()
     {
@@ -22,23 +25,36 @@ public static partial class MullItOver
 
         var finishedReading = false;
 
+        var ignoreNextInstructions = false;
+
         while (!finishedReading)
         {
             var line = await streamReader.ReadLineAsync();
 
             if (line != null)
             {
-                if (MatchIfValidMultiplicationMemory().IsMatch(line))
-                {
-                    var matchCollection = MatchIfValidMultiplicationMemory().Matches(line);
+                if (!MatchIfValidMultiplicationMemoryWithCondtions().IsMatch(line))
+                    continue;
 
-                    foreach (Match match in matchCollection)
+                var matchCollection = MatchIfValidMultiplicationMemoryWithCondtions().Matches(line);
+
+                foreach (Match match in matchCollection)
+                {
+                    ignoreNextInstructions = match.Groups["condition"].Value switch
+                    {
+                        "don't()" => true,
+                        "do()" => false,
+                        _ => ignoreNextInstructions,
+                    };
+
+                    if (match.Groups["operation"].Value == "mul")
                     {
                         instructions.Add(
                             new Instruction(
-                                int.Parse(match.Groups[2].Value),
-                                int.Parse(match.Groups[3].Value),
-                                Operation.Multiplication
+                                int.Parse(match.Groups["X"].Value),
+                                int.Parse(match.Groups["Y"].Value),
+                                Operation.Multiplication,
+                                ignoreNextInstructions
                             )
                         );
                     }
@@ -53,9 +69,18 @@ public static partial class MullItOver
         return instructions;
     }
 
-    private static int CalculateSumOfInstructions(List<Instruction> instructions)
+    private static int CalculateSumOfInstructions(
+        List<Instruction> instructions,
+        bool checkIgnore = false
+    )
     {
-        return instructions.Sum(instruction =>
+        var instructionsToCheck = instructions;
+        if (checkIgnore)
+            instructionsToCheck = instructionsToCheck
+                .Where(instruction => !instruction.Ignore)
+                .ToList();
+
+        return instructionsToCheck.Sum(instruction =>
             instruction.Operation switch
             {
                 Operation.Multiplication => instruction.X * instruction.Y,
@@ -69,6 +94,15 @@ public static partial class MullItOver
         var instructions = await GetCorruptedMemory();
 
         var sum = CalculateSumOfInstructions(instructions);
+
+        return sum;
+    }
+
+    public static async Task<int> Part2()
+    {
+        var instructions = await GetCorruptedMemory();
+
+        var sum = CalculateSumOfInstructions(instructions, true);
 
         return sum;
     }
