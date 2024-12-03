@@ -38,32 +38,115 @@ public static class RedNosedReports
         Unchanged,
     }
 
+    private static bool IsDiffInvalid(int diff) => diff is < 1 or > 3;
+
+    private static bool CheckDiff(
+        this List<int> levels,
+        int fromIdx,
+        int toIdx,
+        Direction? wantedDirection = null
+    )
+    {
+        if (fromIdx < 0)
+            return false;
+
+        if (toIdx > levels.Count - 1)
+            return false;
+
+        var validDirection = wantedDirection switch
+        {
+            Direction.Increasing => levels[fromIdx] < levels[toIdx],
+            Direction.Decreasing => levels[fromIdx] > levels[toIdx],
+            _ => true,
+        };
+
+        return !IsDiffInvalid(Math.Abs(levels[fromIdx] - levels[toIdx])) && validDirection;
+    }
+
     private record LevelEvaluation(int FromIdx, int ToIdx, Direction Direction, int Diff);
 
-    private static int CheckReports(List<List<int>> reports)
+    private static int CheckReports(List<List<int>> reports, bool problemDampener = false)
     {
         var safeReportCount = 0;
 
-        foreach (var report in reports)
+        var problemDampenedReports = new List<int>();
+
+        for (var i = 0; i < reports.Count; i++)
         {
+            var report = reports[i];
+
             var levelEvaluation = GetLevelEvaluations(report);
 
-            var levelsWithUnchangedDirectionCount = levelEvaluation.Count(e =>
-                e.Direction == Direction.Unchanged
-            );
-            var levelsWithIncreasingDirectionCount = levelEvaluation.Count(e =>
-                e.Direction == Direction.Increasing
-            );
-            var levelsWithDecreasingDirectionCount = levelEvaluation.Count(e =>
-                e.Direction == Direction.Decreasing
-            );
+            var unchangedCount = levelEvaluation.Count(e => e.Direction == Direction.Unchanged);
+            var increasingCount = levelEvaluation.Count(e => e.Direction == Direction.Increasing);
+            var decreasingCount = levelEvaluation.Count(e => e.Direction == Direction.Decreasing);
 
-            if (levelEvaluation.Count(eval => eval.Diff is < 1 or > 3) > 0) { }
-            else if (levelsWithUnchangedDirectionCount > 0) { }
+            var errDiffCount = levelEvaluation.Count(eval => IsDiffInvalid(eval.Diff));
+
+            if (unchangedCount > 0)
+            {
+                if (!problemDampener || problemDampenedReports.Contains(i))
+                    continue;
+
+                var unchangedLevel = levelEvaluation.First(eval =>
+                    eval.Direction == Direction.Unchanged
+                );
+                report.RemoveAt(unchangedLevel.ToIdx);
+                problemDampenedReports.Add(i);
+                i--;
+            }
+            else if (increasingCount == decreasingCount) { }
             else if (
-                levelsWithIncreasingDirectionCount > 0
-                && levelsWithDecreasingDirectionCount > 0
-            ) { }
+                increasingCount > 0
+                && increasingCount > decreasingCount
+                && decreasingCount > 0
+            )
+            {
+                if (!problemDampener || problemDampenedReports.Contains(i))
+                    continue;
+
+                var decreasingLevel = levelEvaluation.First(eval =>
+                    eval.Direction == Direction.Decreasing
+                );
+
+                report.RemoveInvalidDiffIndex(decreasingLevel, Direction.Increasing);
+
+                problemDampenedReports.Add(i);
+                i--;
+            }
+            else if (
+                decreasingCount > 0
+                && decreasingCount > increasingCount
+                && increasingCount > 0
+            )
+            {
+                if (!problemDampener || problemDampenedReports.Contains(i))
+                    continue;
+
+                var increasingLevel = levelEvaluation.First(eval =>
+                    eval.Direction == Direction.Increasing
+                );
+
+                report.RemoveInvalidDiffIndex(increasingLevel, Direction.Decreasing);
+
+                problemDampenedReports.Add(i);
+                i--;
+            }
+            else if (errDiffCount > 0)
+            {
+                if (!problemDampener || problemDampenedReports.Contains(i))
+                    continue;
+
+                var invalidDiffEval = levelEvaluation.First(eval => IsDiffInvalid(eval.Diff));
+
+                var wantedDirection =
+                    increasingCount > 0 ? Direction.Increasing : Direction.Decreasing;
+
+                report.RemoveInvalidDiffIndex(invalidDiffEval, wantedDirection);
+
+                problemDampenedReports.Add(i);
+                i--;
+            }
             else
             {
                 safeReportCount++;
@@ -71,6 +154,40 @@ public static class RedNosedReports
         }
 
         return safeReportCount;
+    }
+
+    private static void RemoveInvalidDiffIndex(
+        this List<int> levels,
+        LevelEvaluation levelEvaluation,
+        Direction? wantedDirection = null
+    )
+    {
+        if (levels.CheckDiff(levelEvaluation.FromIdx, levelEvaluation.ToIdx + 1, wantedDirection))
+        {
+            levels.RemoveAt(levelEvaluation.ToIdx);
+        }
+        else if (
+            levels.CheckDiff(levelEvaluation.FromIdx - 1, levelEvaluation.ToIdx, wantedDirection)
+        )
+        {
+            levels.RemoveAt(levelEvaluation.FromIdx);
+        }
+        else if (
+            levels.CheckDiff(levelEvaluation.ToIdx, levelEvaluation.ToIdx + 1, wantedDirection)
+        )
+        {
+            levels.RemoveAt(levelEvaluation.FromIdx);
+        }
+        else if (
+            levels.CheckDiff(levelEvaluation.FromIdx - 1, levelEvaluation.FromIdx, wantedDirection)
+        )
+        {
+            levels.RemoveAt(levelEvaluation.ToIdx);
+        }
+        else
+        {
+            levels.RemoveAt(levelEvaluation.ToIdx);
+        }
     }
 
     private static List<LevelEvaluation> GetLevelEvaluations(List<int> levels)
@@ -81,7 +198,7 @@ public static class RedNosedReports
         {
             var nextIdx = idx + 1;
             if (nextIdx >= levels.Count)
-                continue;
+                break;
 
             var currentLevel = levels[idx];
             var nextLevel = levels[nextIdx];
@@ -113,7 +230,7 @@ public static class RedNosedReports
     {
         var reports = await GetReports();
 
-        var safeReportCount = CheckReports(reports);
+        var safeReportCount = CheckReports(reports, true);
 
         return safeReportCount;
     }

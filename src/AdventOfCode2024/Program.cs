@@ -7,9 +7,8 @@ using AdventOfCode2024.Day2;
 Console.WriteLine("Choose a day, or type 'exit' to exit.:");
 var consoleInput = Console.ReadLine();
 
-if (Enum.TryParse(consoleInput, true,  out AdventChoice choice))
+if (Enum.TryParse(consoleInput, true, out AdventChoice choice))
 {
-    
     switch (choice)
     {
         case AdventChoice.Day1:
@@ -17,11 +16,11 @@ if (Enum.TryParse(consoleInput, true,  out AdventChoice choice))
             Console.WriteLine("Part 2: " + await HistorianHysteria.Part2());
             break;
         case AdventChoice.Day2:
-            // Console.WriteLine("Part 1: " + await RedNosedReports.Part1());
+            Console.WriteLine("Part 1: " + await RedNosedReports.Part1());
             Console.WriteLine("Part 2: " + await RedNosedReports.Part2());
             break;
         case AdventChoice.Exit:
-            
+
             break;
 
         case AdventChoice.Day3:
@@ -50,5 +49,4 @@ if (Enum.TryParse(consoleInput, true,  out AdventChoice choice))
         default:
             throw new ArgumentOutOfRangeException();
     }
-    
 }
