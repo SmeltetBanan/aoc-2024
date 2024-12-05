@@ -2,15 +2,14 @@ namespace AdventOfCode2024.Day1;
 
 public static class HistorianHysteria
 {
-
     private record LocationIds(List<int> LeftIds, List<int> RightIds, int RowCount);
-    
+
     private static async Task<LocationIds> GetLocationIds()
     {
         List<int> leftIds = [];
         List<int> rightIds = [];
         var rowCount = 0;
-        
+
         var streamReader = new StreamReader("./Day1/LocationIds.txt");
 
         var finishedReading = false;
@@ -30,7 +29,6 @@ public static class HistorianHysteria
             {
                 finishedReading = true;
             }
-
         }
 
         return new LocationIds(leftIds, rightIds, rowCount);
@@ -44,14 +42,14 @@ public static class HistorianHysteria
         {
             var minLeftId = locationIds.LeftIds.Min();
             var minRightId = locationIds.RightIds.Min();
-            
+
             var distance = Math.Abs(minLeftId - minRightId);
             distances.Add(distance);
 
             locationIds.LeftIds.Remove(minLeftId);
             locationIds.RightIds.Remove(minRightId);
         }
-        
+
         return distances;
     }
 
@@ -61,16 +59,15 @@ public static class HistorianHysteria
 
         foreach (var leftId in locationIds.LeftIds)
         {
-            
-            var occurrences = locationIds.RightIds.Count(rightId=> rightId == leftId);
+            var occurrences = locationIds.RightIds.Count(rightId => rightId == leftId);
             var similarityScore = leftId * occurrences;
-            
+
             similarityScores.Add(similarityScore);
         }
-        
+
         return similarityScores;
     }
-    
+
     public static async Task<int> Part1()
     {
         var locationIds = await GetLocationIds();
@@ -85,8 +82,7 @@ public static class HistorianHysteria
         var locationIds = await GetLocationIds();
 
         var similarityScore = GetSimilarityScores(locationIds);
-        
+
         return similarityScore.Sum();
     }
-    
 }
