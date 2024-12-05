@@ -32,7 +32,8 @@ if (Enum.TryParse(consoleInput, true, out AdventChoice choice))
             Console.WriteLine("Part 2: " + await CeresSearch.Part2());
             break;
         case AdventChoice.Day5:
-            Console.WriteLine("Part 1: " + await PrintQueue.Part1());
+            // Console.WriteLine("Part 1: " + await PrintQueue.Part1());
+            Console.WriteLine("Part 2: " + await PrintQueue.Part2());
             break;
         case AdventChoice.Exit:
             break;

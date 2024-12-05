@@ -102,6 +102,71 @@ public partial class PrintQueue
         return true;
     }
 
+    private static List<int> ReorderInvalidPageNumbers(
+        List<int> pageNumbers,
+        List<(int Left, int Right)> rules
+    )
+    {
+        var validatePageNumbers = true;
+
+        while (validatePageNumbers)
+        {
+            var changedOrder = false;
+
+            for (var i = 0; i < pageNumbers.Count; i++)
+            {
+                var pageNumber = pageNumbers[i];
+                var pageNumberIdx = i;
+
+                var applicableLeftRules = rules.Where(rule => rule.Left == pageNumber);
+
+                foreach (var applicableLeftRule in applicableLeftRules)
+                {
+                    var idx = i - 1;
+                    while (idx >= 0)
+                    {
+                        var pageNumberToEval = pageNumbers[idx];
+                        if (pageNumberToEval == applicableLeftRule.Right)
+                        {
+                            pageNumbers[pageNumberIdx] = pageNumberToEval;
+                            pageNumbers[idx] = pageNumber;
+                            pageNumberIdx = idx;
+                            changedOrder = true;
+                        }
+
+                        idx--;
+                    }
+                }
+
+                var applicableRightRules = rules.Where(rule => rule.Right == pageNumber);
+
+                foreach (var applicableRightRule in applicableRightRules)
+                {
+                    var idx = i + 1;
+                    while (idx < pageNumbers.Count)
+                    {
+                        var pageNumberToEval = pageNumbers[idx];
+                        if (pageNumberToEval == applicableRightRule.Left)
+                        {
+                            pageNumbers[pageNumberIdx] = pageNumberToEval;
+                            pageNumbers[idx] = pageNumber;
+                            pageNumberIdx = idx;
+
+                            changedOrder = true;
+                        }
+
+                        idx++;
+                    }
+                }
+            }
+
+            if (!changedOrder)
+                validatePageNumbers = false;
+        }
+
+        return pageNumbers;
+    }
+
     private static int SumMiddleOfValidPageNumbers(List<List<int>> listOfPageNumbers)
     {
         var sum = 0;
@@ -121,6 +186,27 @@ public partial class PrintQueue
         var validatedPages = ValidatePageOrder(pageOrdering);
 
         var sum = SumMiddleOfValidPageNumbers(validatedPages);
+
+        return sum;
+    }
+
+    public static async Task<int> Part2()
+    {
+        var pageOrdering = await GetPageOrderingRules();
+
+        var validatedPages = ValidatePageOrder(pageOrdering);
+
+        var invalidPages = pageOrdering
+            .Pages.Where(page => !validatedPages.Contains(page))
+            .ToList();
+
+        var reorderedPages = invalidPages
+            .Select(invalidPageNumbers =>
+                ReorderInvalidPageNumbers(invalidPageNumbers, pageOrdering.Rules)
+            )
+            .ToList();
+
+        var sum = SumMiddleOfValidPageNumbers(reorderedPages);
 
         return sum;
     }
