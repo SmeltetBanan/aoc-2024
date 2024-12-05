@@ -5,6 +5,7 @@ using AdventOfCode2024.Day1;
 using AdventOfCode2024.Day2;
 using AdventOfCode2024.Day3;
 using AdventOfCode2024.Day4;
+using AdventOfCode2024.Models;
 
 Console.WriteLine("Choose a day, or type 'exit' to exit.:");
 var consoleInput = Console.ReadLine();
@@ -26,7 +27,7 @@ if (Enum.TryParse(consoleInput, true, out AdventChoice choice))
             Console.WriteLine("Part 2: " + await MullItOver.Part2());
             break;
         case AdventChoice.Day4:
-            // Console.WriteLine("Part 1: " + await CeresSearch.Part1());
+            Console.WriteLine("Part 1: " + await CeresSearch.Part1());
             Console.WriteLine("Part 2: " + await CeresSearch.Part2());
             break;
         case AdventChoice.Exit:

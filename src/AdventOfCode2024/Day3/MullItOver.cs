@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using AdventOfCode2024.Helpers;
 
 namespace AdventOfCode2024.Day3;
 
@@ -21,48 +22,37 @@ public static partial class MullItOver
     {
         List<Instruction> instructions = [];
 
-        var streamReader = new StreamReader("./Day3/CorruptedMemory.txt");
-
-        var finishedReading = false;
+        var lineReaderAsyncEnumerable = FileReaderHelper.ReadFile("./Day3/CorruptedMemory.txt");
 
         var ignoreNextInstructions = false;
 
-        while (!finishedReading)
+        await foreach (var line in lineReaderAsyncEnumerable)
         {
-            var line = await streamReader.ReadLineAsync();
+            if (!MatchIfValidMultiplicationMemoryWithCondtions().IsMatch(line))
+                continue;
 
-            if (line != null)
+            var matchCollection = MatchIfValidMultiplicationMemoryWithCondtions().Matches(line);
+
+            foreach (Match match in matchCollection)
             {
-                if (!MatchIfValidMultiplicationMemoryWithCondtions().IsMatch(line))
-                    continue;
-
-                var matchCollection = MatchIfValidMultiplicationMemoryWithCondtions().Matches(line);
-
-                foreach (Match match in matchCollection)
+                ignoreNextInstructions = match.Groups["condition"].Value switch
                 {
-                    ignoreNextInstructions = match.Groups["condition"].Value switch
-                    {
-                        "don't()" => true,
-                        "do()" => false,
-                        _ => ignoreNextInstructions,
-                    };
+                    "don't()" => true,
+                    "do()" => false,
+                    _ => ignoreNextInstructions,
+                };
 
-                    if (match.Groups["operation"].Value == "mul")
-                    {
-                        instructions.Add(
-                            new Instruction(
-                                int.Parse(match.Groups["X"].Value),
-                                int.Parse(match.Groups["Y"].Value),
-                                Operation.Multiplication,
-                                ignoreNextInstructions
-                            )
-                        );
-                    }
+                if (match.Groups["operation"].Value == "mul")
+                {
+                    instructions.Add(
+                        new Instruction(
+                            int.Parse(match.Groups["X"].Value),
+                            int.Parse(match.Groups["Y"].Value),
+                            Operation.Multiplication,
+                            ignoreNextInstructions
+                        )
+                    );
                 }
-            }
-            else
-            {
-                finishedReading = true;
             }
         }
 

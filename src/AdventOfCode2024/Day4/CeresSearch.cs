@@ -1,28 +1,17 @@
+using AdventOfCode2024.Helpers;
+
 namespace AdventOfCode2024.Day4;
 
 public static class CeresSearch
 {
     private static async Task<char[][]> GetWordSearch()
     {
+        var lineReaderAsyncEnumerable = FileReaderHelper.ReadFile("./Day4/WordSearch.txt");
+
         List<List<char>> charLines = [];
 
-        var streamReader = new StreamReader("./Day4/WordSearch.txt");
-
-        var finishedReading = false;
-
-        while (!finishedReading)
-        {
-            var line = await streamReader.ReadLineAsync();
-
-            if (line != null)
-            {
-                charLines.Add(line.ToList());
-            }
-            else
-            {
-                finishedReading = true;
-            }
-        }
+        await foreach (var line in lineReaderAsyncEnumerable)
+            charLines.Add(line.ToList());
 
         return charLines.Select(cl => cl.ToArray()).ToArray();
     }
