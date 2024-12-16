@@ -7,6 +7,7 @@ using AdventOfCode2024.Day3;
 using AdventOfCode2024.Day4;
 using AdventOfCode2024.Day5;
 using AdventOfCode2024.Day6;
+using AdventOfCode2024.Day7;
 using AdventOfCode2024.Models;
 
 Console.WriteLine("Choose a day, or type 'exit' to exit.:");
@@ -40,10 +41,12 @@ if (Enum.TryParse(consoleInput, true, out AdventChoice choice))
             Console.WriteLine("Part 1: " + await GuardGallivant.Part1());
             Console.WriteLine("Part 2: " + await GuardGallivant.Part2());
             break;
+        case AdventChoice.Day7:
+            Console.WriteLine("Part 1: " + await BridgeRepair.Part1());
+            break;
         case AdventChoice.Exit:
             break;
 
-        case AdventChoice.Day7:
         case AdventChoice.Day8:
         case AdventChoice.Day9:
         case AdventChoice.Day10:

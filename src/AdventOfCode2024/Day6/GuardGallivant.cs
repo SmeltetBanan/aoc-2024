@@ -4,7 +4,7 @@ using AdventOfCode2024.Helpers;
 
 namespace AdventOfCode2024.Day6;
 
-public class GuardGallivant
+public static class GuardGallivant
 {
     private static async Task<char[][]> GetMap()
     {
